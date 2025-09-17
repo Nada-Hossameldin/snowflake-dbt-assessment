@@ -1,0 +1,22 @@
+name: 'snowflake_tpch_demo'
+version: '1.0.0'
+config-version: 2
+
+
+profile: 'maidscc'
+
+
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+data-paths: ["data"]
+
+
+models:
+snowflake_tpch_demo:
++materialized: table
+staging:
++materialized: view
+marts:
++materialized: table
