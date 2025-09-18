@@ -1,5 +1,5 @@
 ````markdown
-# snowflake-dbt-assessment
+## snowflake-dbt-assessment
 
 This repo contains a dbt project that reads Snowflake "TPCH sample data" and builds models across staging (silver) and marts (gold) layers.
 
