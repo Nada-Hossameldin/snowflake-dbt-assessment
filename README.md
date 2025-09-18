@@ -1,45 +1,31 @@
 ````markdown
-## snowflake-dbt-assessment
+# snowflake-dbt-assessment
 
-This repo contains a dbt project that reads Snowflake "TPCH sample data" and builds models across staging (silver) and marts (gold) layers.
+This repo contains a dbt project that reads Snowflake "TPCH sample data" and builds models across staging (silver) and marts (gold) layers. All model and column documentation is stored in `models/schema.yml` and can be viewed interactively using dbt Docs.
 
 ## Models
 
-### stg_orders (silver)
-- Sources data from `orders` and `customer` tables.
-- Adds `customer_name`.
-- Derives `order_year` (from `o_orderdate`).
-- Keeps `total_price` column.
-- Tested for "unique + not null" on `o_orderkey`.
+stg_orders (silver)  
+Sources data from `orders` and `customer` tables. Adds `customer_name`. Derives `order_year` (from `o_orderdate`). Keeps `total_price` column. Tested for "unique + not null" on `o_orderkey`.
 
-### customer_revenue (gold)
-- Joins `orders` and `lineitem`.
-- Computes total revenue per customer:
-  ```sql
-  SUM(l_extendedprice * (1 - l_discount))
-````
+customer_revenue (gold)  
+Joins `orders` and `lineitem`. Computes total revenue per customer: SUM(l_extendedprice * (1 - l_discount)). Groups by `c_custkey` and includes `customer_name`. Tested for "not null" on primary key.
 
-* Groups by `c_custkey` and includes `customer_name`.
-* Tested for "not null" on primary key.
-
-### customer\_revenue\_by\_year (gold)
-
-* Aggregates yearly revenue per customer (`order_year`).
-* Demonstrates grouping by both customer and year.
+customer_revenue_by_year (gold)  
+Aggregates yearly revenue per customer (`order_year`). Demonstrates grouping by both customer and year.
 
 ---
 
 ## How to Run
 
 ### 1. Snowflake setup
-
 Ensure you have a warehouse `DEV_WH`, database `MAIDSCC_DB`, and schema `ANALYTICS`. Example:
 
 ```sql
 CREATE WAREHOUSE DEV_WH WITH WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE;
 CREATE DATABASE MAIDSCC_DB;
 CREATE SCHEMA MAIDSCC_DB.ANALYTICS;
-```
+````
 
 ### 2. Configure dbt profile
 
@@ -81,7 +67,7 @@ dbt docs generate
 dbt docs serve
 ```
 
-> Note: The interactive documentation opened by `dbt docs serve` runs locally on your machine at `http://localhost:8080`. Anyone cloning this repo will need to run `dbt docs serve` themselves to access the docs.
+> **Interactive Documentation:** The interactive documentation opened by `dbt docs serve` runs locally on your machine at `http://localhost:8080`. It renders all models, columns, tests, and sources defined in `schema.yml`. Anyone cloning this repo can generate and serve the docs themselves.
 
 ---
 
@@ -102,6 +88,8 @@ dbt docs serve
 * `not_null` on `c_custkey`
 * Referential integrity: `orders.c_custkey` → `customer.c_custkey`
 
+**Documentation:** All models, columns, and tests are documented in `schema.yml` and can be viewed using dbt Docs.
+
 ---
 
 ## Enhancements
@@ -117,9 +105,3 @@ dbt docs serve
 * Target DB/schema: `MAIDSCC_DB.ANALYTICS`
 * Warehouse: `DEV_WH`
 
-```
-
-This version explicitly tells the assessor how they can view your documentation and keeps all deliverables, tests, and enhancements clearly listed.  
-
-If you want, I can also **add a short section showing how to see the dbt exposures** so your optional enhancements are fully represented in the README. Do you want me to do that?
-```
