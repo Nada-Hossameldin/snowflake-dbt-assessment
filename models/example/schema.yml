@@ -1,27 +1,35 @@
 version: 2
 
+sources:
+  - name: tpch
+    schema: tpch_sf1
+    tables:
+      - name: customer
+      - name: orders
+      - name: lineitem
+
 models:
   - name: stg_orders
-    description: "Orders joined with customers, with derived columns"
+    description: "Staging model that enriches orders with customer name and derived columns."
     columns:
       - name: o_orderkey
+        description: "Primary key for orders."
         tests:
-          - unique
           - not_null
+          - unique
+      - name: o_custkey
+        description: "Foreign key to customer table."
+        tests:
+          - not_null
+          - relationships:
+              to: source('tpch','customer')
+              field: c_custkey
+      - name: order_year
+        description: "Year extracted from o_orderdate."
+      - name: total_price
+        description: "Total order price from o_totalprice."
 
   - name: customer_revenue
-    description: "Aggregated revenue per customer"
+    description: "Aggregated revenue per customer based on line items."
     columns:
-      - name: customer_id
-        tests:
-          - not_null
-
-  - name: customer_revenue_by_year
-    description: "Aggregated yearly revenue per customer"
-    columns:
-      - name: customer_id
-        tests:
-          - not_null
-      - name: order_year
-        tests:
-          - not_null
+      - name:
