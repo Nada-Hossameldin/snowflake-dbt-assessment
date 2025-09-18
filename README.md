@@ -1,4 +1,4 @@
-# snowflake-dbt-assessment
+# Snowflake-dbt-Assessment
 
 This repo contains a dbt project that reads Snowflake "TPCH sample data" and builds models across staging (silver) and marts (gold) layers. All model and column documentation is stored in `models/schema.yml` and can be viewed interactively using dbt Docs.
 
