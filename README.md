@@ -1,49 +1,118 @@
-# snowflake-dbt-assessment
+This repo contains a dbt project that reads Snowflake "TPCH sample data" and builds models across staging (silver) and marts (gold) layers.
 
+## Models
 
-This repo contains a dbt project that reads Snowflake TPCH sample data and builds two models:
+`stg_orders` (silver)
 
+ - Sources data from `orders` and `customer` tables.
+ - Adds `customer_name`.
+ - Derives `order_year` (from `o_orderdate`).
+ - Keeps `total_price` column.
+ - Tested for "unique + not null" on `o_orderkey`.
 
-- `stg_orders` (silver): orders + customer name + order_year
-- `customer_revenue` (gold): revenue per customer
+`customer_revenue` (gold)
 
+ - Joins `orders` and `lineitem`.
+ - Computes total revenue per customer:
 
-## How to run
+`SUM(l_extendedprice * (1 - l_discount))`.
+ - Groups by `c_custkey` and includes `customer_name`.
+ - Tested for "not null" on primary key.
 
+`customer_revenue_by_year` (gold)
 
-1. Ensure Snowflake setup: run the SQL in `setup_sql.sql` (or the commands below) to create `MAIDSCC_DB` and `ANALYTICS` schema and `DEV_WH` warehouse.
-2. Update `~/.dbt/profiles.yml` with your Snowflake credentials (account, user, password). Use the profile name `maidscc`.
-3. Activate Python virtualenv and install dbt:
+Aggregates yearly revenue per customer (`order_year`).
+Demonstrates grouping by both customer and year.
 
+---
 
-```bash
-python -m venv venv
-venv\Scripts\activate # Windows
-pip install --upgrade pip
-pip install dbt-core dbt-snowflake
-```
+## How to Run
 
+1. Snowflake setup
 
-4. From project root run:
+    Ensure you have a warehouse `DEV_WH`, DB `MAIDSCC_DB`, and schema `ANALYTICS`.
+    Example:
 
+     ```sql
+     CREATE WAREHOUSE DEV_WH WITH WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE;
+     CREATE DATABASE MAIDSCC_DB;
+     CREATE SCHEMA MAIDSCC_DB.ANALYTICS;
+     ```
 
-```bash
-dbt debug
-dbt deps
-dbt run --select stg_orders customer_revenue
-dbt test
-dbt docs generate
-dbt docs serve
-```
+2. Configure dbt profile
 
+ Add to `~/.dbt/profiles.yml`:
+
+     ```yaml
+     snowflake_tpch_demo:
+       target: dev
+       outputs:
+         dev:
+           type: snowflake
+           account: RQXDWNP-QC05241
+           user: <YOUR_USER>
+           password: <YOUR_PASSWORD>
+           role: ACCOUNTADMIN
+           database: MAIDSCC_DB
+           warehouse: DEV_WH
+           schema: ANALYTICS
+           threads: 4
+     ```
+
+3. Install dbt
+
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate   # Windows
+   pip install --upgrade pip
+   pip install dbt-core dbt-snowflake
+   ```
+
+4. Run dbt
+
+   ```bash
+   dbt debug
+   dbt deps
+   dbt run
+   dbt test
+   dbt docs generate
+   dbt docs serve
+   ```
+
+---
 
 ## Deliverables
-- Models: `models/staging/stg_orders.sql`, `models/marts/customer_revenue.sql`
-- Source & tests: `models/schema.yml`
-- README
 
+Models:
+
+- `models/staging/stg_orders.sql`
+- `models/marts/customer_revenue.sql`
+- `models/marts/customer_revenue_by_year.sql`
+
+Sources & Tests: `models/schema.yml`
+
+Sources: `customer`, `orders`, `lineitem`
+Tests:
+
+- `unique` + `not_null` on `o_orderkey`
+- `not_null` on `c_custkey`
+Referential integrity: `orders.c_custkey` → `customer.c_custkey`
+
+
+
+---
+
+## Enhancements
+
+- Referential integrity tests between customers and orders.
+- dbt Cloud job scheduling: configure a daily run job to keep models refreshed.
+
+---
 
 ## Assumptions
-- Snowflake account: `RQXDWNP-QC05241` 
+
+- Snowflake account: `RQXDWNP-QC05241`
 - Target DB/schema: `MAIDSCC_DB.ANALYTICS`
 - Warehouse: `DEV_WH`
+
+
